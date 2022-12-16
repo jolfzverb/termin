@@ -4,15 +4,36 @@ const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 const {exec} = require("child_process");
 
+const bot_token = "dummytoken";
+const chat_id = "31337";
+const notification_text = "Termin calls!";
+
+
 puppeteer.use(StealthPlugin())
 
-puppeteer.launch({ headless: false, product: 'chrome' }).then(async browser => {
+const puppeteerOptions = {
+    headless: false,
+    ignoreHTTPSErrors: true,
+    args: [
+        '--no-sandbox', 
+        '--single-process',
+        ],
+    ignoreDefaultArgs: ["--enable-automation"],
+    executablePath: '/usr/bin/chromium' 
+}
+
+const init = async () => {
+    browser = await puppeteer.launch(puppeteerOptions)
     let count = 0;
-    let page = await browser.newPage();
+    let page = (await browser.pages())[0];
+
+
     while (true) {
         let time = Math.floor(Date.now() / 1000);
         try {
-            page = await browser.newPage()
+            if ((await browser.pages()).length == 0 ){
+                page = await browser.newPage()
+            }
             await page.setViewport({ width: 800, height: 600 })
             await page.setDefaultTimeout(60000);
 
@@ -103,13 +124,18 @@ puppeteer.launch({ headless: false, product: 'chrome' }).then(async browser => {
             //await page.screenshot({path: `${path1}/screenshot.png`});
             let j = 0;
             while (j < 20) {
-                exec('beep');
+                // replace this with something like 
+                // wget 'https://api.telegram.org/bot{bot_token}/sendMessage?chat_id={chat_id}&text={notification_text}'
+                exec(`wget 'https://api.telegram.org/bot${bot_token}/sendMessage?chat_id=${chat_id}&text=${notification_text}'`);
+                // exec('beep');
                 j = j+1;
             }
             await page.waitForTimeout(1000 * 60 * 5);
         }
     }
-})
+}
+
+init()
 
 /*describe('Check termins', () => {
     beforeAll( async () => {
